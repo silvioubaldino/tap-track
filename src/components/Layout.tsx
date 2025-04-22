@@ -85,7 +85,8 @@ const Layout = ({ children }: LayoutProps) => {
         </main>
         
         <footer className={`text-center text-sm mt-8 py-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
-          © {new Date().getFullYear()} Controle de Tempo
+          <p className="mb-2">© {new Date().getFullYear()} Controle de Tempo</p>
+          <p className="text-xs opacity-75">Os dados são armazenados localmente no seu navegador e podem ser perdidos se você limpar os dados de navegação.</p>
         </footer>
       </div>
     </div>
