@@ -11,16 +11,27 @@ export const getCurrentDate = (): string => {
 };
 
 /**
- * Formata uma duração em segundos para o formato HH:MM:SS
+ * Formata uma duração em milissegundos para o formato HH:MM:SS
  */
-export const formatTime = (seconds: number): string => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
+export const formatTime = (ms: number): string => {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
 
-  return [hours, minutes, secs]
+  return [hours, minutes, seconds]
     .map(v => v.toString().padStart(2, '0'))
     .join(':');
+};
+
+/**
+ * Formata uma data em milissegundos para o formato HH:MM
+ */
+export const formatDateTime = (ms: number): string => {
+  const date = new Date(ms);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
 };
 
 /**
@@ -36,13 +47,10 @@ export const getTimeDifference = (startTime: string, endTime: string): number =>
 /**
  * Verifica se duas datas são do mesmo dia
  */
-export const isSameDay = (date1: string, date2: string): boolean => {
-  const d1 = new Date(date1);
-  const d2 = new Date(date2);
-  
+export const isSameDay = (date1: Date, date2: Date): boolean => {
   return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
   );
 }; 

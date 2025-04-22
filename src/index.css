@@ -8,6 +8,7 @@
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -17,19 +18,82 @@
   button {
     @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
   }
+
+  /* Melhorar a experiência de toque em dispositivos móveis */
+  @media (hover: none) {
+    button {
+      @apply active:scale-95 transition-transform;
+    }
+  }
+
+  /* Melhorar a experiência de hover em dispositivos desktop */
+  @media (hover: hover) {
+    button {
+      @apply hover:scale-105 transition-transform;
+    }
+  }
+
+  /* Melhorar a experiência de foco */
+  :focus {
+    @apply outline-none ring-2 ring-blue-500 ring-opacity-50;
+  }
+
+  /* Melhorar a experiência de seleção de texto */
+  ::selection {
+    @apply bg-blue-500 text-white;
+  }
 }
 
 /* Estilização personalizada para elementos específicos */
 @layer components {
   .btn {
-    @apply py-2 px-4 rounded font-medium transition-colors;
+    @apply py-2 px-4 rounded font-medium transition-all duration-200;
   }
   
   .btn-primary {
-    @apply bg-blue-500 text-white hover:bg-blue-600;
+    @apply bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700;
   }
   
   .btn-danger {
-    @apply bg-red-500 text-white hover:bg-red-600;
+    @apply bg-red-500 text-white hover:bg-red-600 active:bg-red-700;
+  }
+
+  /* Animações suaves para transições */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Feedback visual para interações */
+  .interactive {
+    @apply cursor-pointer hover:scale-105 active:scale-95 transition-transform;
+  }
+
+  /* Melhorar a experiência em dispositivos móveis */
+  .mobile-touch {
+    @apply sm:hover:scale-105 active:scale-95 transition-transform;
+  }
+}
+
+/* Animações personalizadas */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Melhorias de acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
