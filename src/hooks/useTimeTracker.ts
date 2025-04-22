@@ -8,33 +8,64 @@ interface TimeInterval {
   end?: number;
 }
 
-interface TimeTrackerState {
-  intervals: TimeInterval[];
-  isTracking: boolean;
+interface DayIntervals {
+  [date: string]: TimeInterval[];
 }
 
 const STORAGE_KEY = 'time-intervals';
 
-export function useTimeTracker() {
-  const [intervals, setIntervals] = useState<TimeInterval[]>(() => {
-    const savedIntervals = localStorage.getItem(STORAGE_KEY);
-    if (!savedIntervals) return [];
+const getDateKey = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
 
-    const parsedIntervals = JSON.parse(savedIntervals);
-    const today = new Date();
-    
-    // Filtra apenas os intervalos do dia atual
-    return parsedIntervals.filter((interval: TimeInterval) => 
-      isSameDay(new Date(interval.start), today)
-    );
+const getTodayKey = (): string => {
+  return getDateKey(new Date());
+};
+
+export function useTimeTracker() {
+  const [allIntervals, setAllIntervals] = useState<DayIntervals>(() => {
+    const savedIntervals = localStorage.getItem(STORAGE_KEY);
+    if (!savedIntervals) return { [getTodayKey()]: [] };
+
+    try {
+      const parsedData = JSON.parse(savedIntervals);
+      
+      // Se for o formato antigo (array), converte para o novo formato
+      if (Array.isArray(parsedData)) {
+        const organizedData: DayIntervals = {};
+        parsedData.forEach((interval: TimeInterval) => {
+          const dateKey = getDateKey(new Date(interval.start));
+          if (!organizedData[dateKey]) {
+            organizedData[dateKey] = [];
+          }
+          organizedData[dateKey].push(interval);
+        });
+        return organizedData;
+      }
+      
+      return parsedData;
+    } catch (error) {
+      console.error('Erro ao carregar intervalos:', error);
+      return { [getTodayKey()]: [] };
+    }
+  });
+
+  const [intervals, setIntervals] = useState<TimeInterval[]>(() => {
+    return allIntervals[getTodayKey()] || [];
   });
 
   const [isTracking, setIsTracking] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(Date.now());
 
-  // Persiste os intervalos no localStorage
+  // Persiste todos os intervalos no localStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(intervals));
+    const todayKey = getTodayKey();
+    const newAllIntervals = {
+      ...allIntervals,
+      [todayKey]: intervals
+    };
+    setAllIntervals(newAllIntervals);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newAllIntervals));
   }, [intervals]);
 
   // Verifica se há um intervalo em andamento ao inicializar
@@ -87,8 +118,13 @@ export function useTimeTracker() {
   }, [intervals, isTracking, lastUpdate]);
 
   const resetAll = useCallback(() => {
+    const todayKey = getTodayKey();
     setIntervals([]);
     setIsTracking(false);
+    setAllIntervals(prev => ({
+      ...prev,
+      [todayKey]: []
+    }));
   }, []);
 
   const deleteInterval = useCallback((id: string) => {
@@ -137,6 +173,11 @@ export function useTimeTracker() {
     return intervals[intervals.length - 1];
   }, [isTracking, intervals]);
 
+  const getIntervalsForDate = useCallback((date: Date): TimeInterval[] => {
+    const dateKey = getDateKey(date);
+    return allIntervals[dateKey] || [];
+  }, [allIntervals]);
+
   return {
     intervals,
     isTracking,
@@ -148,5 +189,7 @@ export function useTimeTracker() {
     editInterval,
     addInterval,
     getCurrentInterval,
+    getIntervalsForDate,
+    allIntervals
   };
 } 

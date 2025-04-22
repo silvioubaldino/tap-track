@@ -21,7 +21,8 @@ export function TimeTracker() {
     resetAll,
     deleteInterval,
     editInterval,
-    addInterval
+    addInterval,
+    allIntervals
   } = useTimeTracker();
 
   const [currentTime, setCurrentTime] = useState(calculateTotalTime());
@@ -73,41 +74,81 @@ export function TimeTracker() {
     }, 150);
   }, [resetAll]);
 
-  const handleExportData = useCallback(() => {
+  const handleExportData = useCallback((exportAll: boolean = false) => {
     // Cria o cabeçalho do CSV
     const headers = ['Data', 'Início', 'Fim', 'Duração'];
+    const rows: string[][] = [];
     
-    // Formata os dados de cada intervalo
-    const rows = intervals.map(interval => {
-      const inicio = new Date(interval.start).toLocaleTimeString('pt-BR');
-      const fim = interval.end ? new Date(interval.end).toLocaleTimeString('pt-BR') : 'Em andamento';
-      const duracao = interval.end 
-        ? formatTime(interval.end - interval.start)
-        : formatTime(Date.now() - interval.start);
-      
-      return [
-        new Date(interval.start).toLocaleDateString('pt-BR'),
-        inicio,
-        fim,
-        duracao
-      ];
-    });
+    if (exportAll) {
+      // Exporta todos os dias
+      Object.entries(allIntervals).forEach(([dateKey, dayIntervals]) => {
+        if (dayIntervals.length === 0) return;
 
-    // Adiciona uma linha com o total
-    const linhaTotal = ['Total do dia', '', '', formatTime(currentTime)];
-    
+        const totalDayTime = dayIntervals.reduce((total, interval) => {
+          const end = interval.end || Date.now();
+          return total + (end - interval.start);
+        }, 0);
+
+        // Adiciona os intervalos do dia
+        dayIntervals.forEach(interval => {
+          rows.push([
+            new Date(interval.start).toLocaleDateString('pt-BR'),
+            new Date(interval.start).toLocaleTimeString('pt-BR'),
+            interval.end ? new Date(interval.end).toLocaleTimeString('pt-BR') : 'Em andamento',
+            formatTime(interval.end ? interval.end - interval.start : Date.now() - interval.start)
+          ]);
+        });
+
+        // Adiciona o total do dia
+        rows.push([
+          new Date(dateKey).toLocaleDateString('pt-BR'),
+          'Total do dia',
+          '',
+          formatTime(totalDayTime)
+        ]);
+
+        // Adiciona uma linha em branco entre os dias
+        rows.push(['', '', '', '']);
+      });
+    } else {
+      // Exporta apenas o dia atual
+      intervals.forEach(interval => {
+        rows.push([
+          new Date(interval.start).toLocaleDateString('pt-BR'),
+          new Date(interval.start).toLocaleTimeString('pt-BR'),
+          interval.end ? new Date(interval.end).toLocaleTimeString('pt-BR') : 'Em andamento',
+          formatTime(interval.end ? interval.end - interval.start : Date.now() - interval.start)
+        ]);
+      });
+
+      // Adiciona o total do dia atual
+      rows.push([
+        new Date().toLocaleDateString('pt-BR'),
+        'Total do dia',
+        '',
+        formatTime(currentTime)
+      ]);
+    }
+
+    // Remove a última linha em branco se existir
+    if (rows[rows.length - 1].every(cell => cell === '')) {
+      rows.pop();
+    }
+
     // Combina tudo em um CSV
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.join(',')),
-      linhaTotal.join(',')
+      ...rows.map(row => row.join(','))
     ].join('\n');
 
     // Cria e dispara o download
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    const fileName = `controle-tempo-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`;
+    const today = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+    const fileName = exportAll 
+      ? `controle-tempo-historico-${today}.csv`
+      : `controle-tempo-${today}.csv`;
     
     link.href = url;
     link.download = fileName;
@@ -115,7 +156,7 @@ export function TimeTracker() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  }, [intervals, currentTime]);
+  }, [intervals, currentTime, allIntervals]);
 
   // Adiciona os atalhos de teclado
   useKeyboardShortcuts({
@@ -151,10 +192,16 @@ export function TimeTracker() {
 
         <div className="flex justify-end gap-2 mb-6">
           <button
-            onClick={handleExportData}
+            onClick={() => handleExportData(true)}
             className="text-sm px-3 py-1.5 rounded font-normal text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-1"
           >
-            Exportar dados
+            Exportar histórico
+          </button>
+          <button
+            onClick={() => handleExportData(false)}
+            className="text-sm px-3 py-1.5 rounded font-normal text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-1"
+          >
+            Exportar dia atual
           </button>
           <button
             onClick={handleReset}
