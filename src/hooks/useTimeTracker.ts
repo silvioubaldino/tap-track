@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
 interface TimeInterval {
+  id: string;
   start: number;
   end?: number;
 }
@@ -31,7 +32,7 @@ export function useTimeTracker() {
     if (!state.isTracking) {
       setState(prev => ({
         ...prev,
-        intervals: [...prev.intervals, { start: Date.now() }],
+        intervals: [...prev.intervals, { id: crypto.randomUUID(), start: Date.now() }],
         isTracking: true
       }));
     }
@@ -80,7 +81,29 @@ export function useTimeTracker() {
     });
   };
 
+  const deleteInterval = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      intervals: prev.intervals.filter(interval => interval.id !== id)
+    }));
+  };
+
+  const editInterval = (id: string, start: number, end?: number) => {
+    setState(prev => ({
+      ...prev,
+      intervals: prev.intervals.map(interval => 
+        interval.id === id ? { ...interval, start, end } : interval
+      )
+    }));
+  };
+
+  const getCurrentInterval = () => {
+    if (!state.isTracking) return null;
+    return state.intervals[state.intervals.length - 1];
+  };
+
   return {
+    intervals: state.intervals,
     isTracking: state.isTracking,
     goal: state.goal,
     startTracking,
@@ -88,6 +111,9 @@ export function useTimeTracker() {
     setGoal,
     calculateTotalTime,
     getRemainingTime,
-    resetAll
+    resetAll,
+    deleteInterval,
+    editInterval,
+    getCurrentInterval
   };
 } 
