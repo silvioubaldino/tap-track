@@ -103,12 +103,15 @@ export function TimeTracker() {
           >
             {isTracking ? 'Parar' : 'Iniciar'}
           </button>
+        </div>
+
+        <div className="flex justify-end mb-6">
           <button
             onClick={handleReset}
             disabled={isTransitioning}
-            className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium text-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50"
+            className="text-sm px-3 py-1.5 rounded font-normal text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-1 disabled:opacity-50"
           >
-            Resetar
+            Resetar dados
           </button>
         </div>
 
