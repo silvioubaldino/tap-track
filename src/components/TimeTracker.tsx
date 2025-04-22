@@ -5,12 +5,6 @@ import { IntervalsList } from './IntervalsList';
 import { TimeGoal } from './TimeGoal';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
-interface Interval {
-  id: string;
-  start: number;
-  end?: number;
-}
-
 export function TimeTracker() {
   const {
     intervals,
