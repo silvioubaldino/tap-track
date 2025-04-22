@@ -1,40 +1,82 @@
 import { ReactNode, useEffect, useState } from "react";
+import { ThemeMode } from "../types";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>("system");
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
 
+  // Verifica se o sistema está em modo escuro
+  const checkSystemTheme = (): boolean => {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+
+  // Efeito para inicializar o tema e adicionar listener para mudanças no sistema
   useEffect(() => {
-    // Verificar preferência do sistema
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setDarkMode(prefersDark);
+    const updateTheme = () => {
+      if (themeMode === "system") {
+        setIsDarkMode(checkSystemTheme());
+      } else {
+        setIsDarkMode(themeMode === "dark");
+      }
+    };
+
+    updateTheme();
     
     // Adicionar listener para mudanças na preferência do sistema
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => setDarkMode(e.matches);
+    const handleChange = () => {
+      if (themeMode === "system") {
+        updateTheme();
+      }
+    };
     
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
+  }, [themeMode]);
+
+  // Função para alternar o modo de tema
+  const toggleTheme = () => {
+    if (themeMode === "light") {
+      setThemeMode("dark");
+    } else if (themeMode === "dark") {
+      setThemeMode("system");
+    } else {
+      setThemeMode("light");
+    }
+  };
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${darkMode ? "dark bg-gray-900" : "bg-gray-100"}`}>
+    <div className={`min-h-screen transition-colors duration-200 ${isDarkMode ? "dark bg-gray-900" : "bg-gray-100"}`}>
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
           <div className="flex justify-between items-center">
-            <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
+            <h1 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
               Controle de Tempo
             </h1>
-            <button 
-              onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 rounded-md ${darkMode ? "bg-gray-700 text-yellow-300" : "bg-gray-200 text-gray-700"}`}
-              aria-label="Alternar tema"
-            >
-              {darkMode ? "☀️" : "🌙"}
-            </button>
+            <div className="flex items-center">
+              <button 
+                onClick={toggleTheme}
+                className={`p-2 rounded-md flex items-center ${isDarkMode ? "bg-gray-700 text-yellow-300" : "bg-gray-200 text-gray-700"}`}
+                aria-label="Alternar tema"
+              >
+                {themeMode === "light" && (
+                  <span title="Tema Claro">☀️</span>
+                )}
+                {themeMode === "dark" && (
+                  <span title="Tema Escuro">🌙</span>
+                )}
+                {themeMode === "system" && (
+                  <span title="Tema do Sistema">🖥️</span>
+                )}
+                <span className="ml-2 text-xs">
+                  {themeMode === "light" ? "Claro" : themeMode === "dark" ? "Escuro" : "Sistema"}
+                </span>
+              </button>
+            </div>
           </div>
         </header>
         
@@ -42,7 +84,7 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </main>
         
-        <footer className={`text-center text-sm mt-8 py-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+        <footer className={`text-center text-sm mt-8 py-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
           © {new Date().getFullYear()} Controle de Tempo
         </footer>
       </div>

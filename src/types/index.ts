@@ -1,3 +1,5 @@
+export type ThemeMode = "light" | "dark" | "system";
+
 export interface TimeInterval {
   id: string;
   startTime: string;
@@ -13,5 +15,5 @@ export interface AppState {
   intervals: TimeInterval[];
   currentDay: string;
   goal: TimeGoal;
-  darkMode: boolean;
+  themeMode: ThemeMode;
 } 
