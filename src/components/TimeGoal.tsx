@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTimeGoal } from '../hooks/useTimeGoal';
+import { formatDateTime } from '../utils/dateTime';
 
 interface TimeGoalProps {
   totalMinutesTracked: number; // tempo em milissegundos
@@ -10,6 +11,16 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
   const [inputHours, setInputHours] = useState('');
   const [inputMinutes, setInputMinutes] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
+
+  // Atualiza o lastUpdate a cada minuto para forçar o recálculo da previsão
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdate(Date.now());
+    }, 60000); // 60000ms = 1 minuto
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Converte milissegundos para minutos para o cálculo de progresso
   const trackedMinutes = Math.floor(totalMinutesTracked / (1000 * 60));
@@ -77,6 +88,21 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
     ].filter(Boolean);
     
     return `${timeComponents.join(' ')} restantes`;
+  };
+
+  const getEstimatedCompletionTime = () => {
+    if (!goal) return null;
+    
+    // Converte a meta para milissegundos
+    const goalInMs = goal.totalMinutes * 60 * 1000;
+    const remainingMs = goalInMs - totalMinutesTracked;
+    
+    if (remainingMs <= 0) return null;
+    
+    // Calcula o horário estimado de conclusão usando lastUpdate
+    const estimatedCompletionTime = lastUpdate + remainingMs;
+    
+    return formatDateTime(estimatedCompletionTime);
   };
 
   const formatGoalTime = (hours: number, minutes: number) => {
@@ -149,6 +175,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
 
   const progress = calculateProgress();
   const remainingTime = getRemainingTime();
+  const estimatedCompletionTime = getEstimatedCompletionTime();
 
   return (
     <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
@@ -181,9 +208,16 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
               horas
             </span>
           </div>
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-            {remainingTime}
-          </p>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              {remainingTime}
+            </p>
+            {estimatedCompletionTime && (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Previsão de conclusão às {estimatedCompletionTime}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="mt-4">
