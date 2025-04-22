@@ -73,6 +73,50 @@ export function TimeTracker() {
     }, 150);
   }, [resetAll]);
 
+  const handleExportData = useCallback(() => {
+    // Cria o cabeçalho do CSV
+    const headers = ['Data', 'Início', 'Fim', 'Duração'];
+    
+    // Formata os dados de cada intervalo
+    const rows = intervals.map(interval => {
+      const inicio = new Date(interval.start).toLocaleTimeString('pt-BR');
+      const fim = interval.end ? new Date(interval.end).toLocaleTimeString('pt-BR') : 'Em andamento';
+      const duracao = interval.end 
+        ? formatTime(interval.end - interval.start)
+        : formatTime(Date.now() - interval.start);
+      
+      return [
+        new Date(interval.start).toLocaleDateString('pt-BR'),
+        inicio,
+        fim,
+        duracao
+      ];
+    });
+
+    // Adiciona uma linha com o total
+    const linhaTotal = ['Total do dia', '', '', formatTime(currentTime)];
+    
+    // Combina tudo em um CSV
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(',')),
+      linhaTotal.join(',')
+    ].join('\n');
+
+    // Cria e dispara o download
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const fileName = `controle-tempo-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.csv`;
+    
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [intervals, currentTime]);
+
   // Adiciona os atalhos de teclado
   useKeyboardShortcuts({
     onStartStop: isTracking ? handleStopTracking : handleStartTracking,
@@ -105,7 +149,13 @@ export function TimeTracker() {
           </button>
         </div>
 
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end gap-2 mb-6">
+          <button
+            onClick={handleExportData}
+            className="text-sm px-3 py-1.5 rounded font-normal text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-1"
+          >
+            Exportar dados
+          </button>
           <button
             onClick={handleReset}
             disabled={isTransitioning}
