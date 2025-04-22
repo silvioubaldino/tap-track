@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTimeTracker } from '../hooks/useTimeTracker';
 import { formatTime } from '../utils/timeUtils';
 import { IntervalsList } from './IntervalsList';
@@ -21,17 +21,30 @@ export function TimeTracker() {
 
   const [currentTime, setCurrentTime] = useState(calculateTotalTime());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Atualiza o tempo total quando os intervalos são modificados ou quando está em andamento
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     const updateTimer = () => {
       setCurrentTime(calculateTotalTime());
     };
 
-    // Atualiza imediatamente
     updateTimer();
 
-    // Se estiver em andamento, atualiza a cada segundo
     let intervalId: number | undefined;
     if (isTracking) {
       intervalId = window.setInterval(updateTimer, 1000);
@@ -69,12 +82,10 @@ export function TimeTracker() {
   }, [resetAll]);
 
   const handleExportData = useCallback((exportAll: boolean = false) => {
-    // Cria o cabeçalho do CSV
     const headers = ['Data', 'Início', 'Fim', 'Duração'];
     const rows: string[][] = [];
     
     if (exportAll) {
-      // Exporta todos os dias
       Object.entries(allIntervals).forEach(([dateKey, dayIntervals]) => {
         if (dayIntervals.length === 0) return;
 
@@ -83,7 +94,6 @@ export function TimeTracker() {
           return total + (end - interval.start);
         }, 0);
 
-        // Adiciona os intervalos do dia
         dayIntervals.forEach(interval => {
           rows.push([
             new Date(interval.start).toLocaleDateString('pt-BR'),
@@ -93,7 +103,6 @@ export function TimeTracker() {
           ]);
         });
 
-        // Adiciona o total do dia
         rows.push([
           new Date(dateKey).toLocaleDateString('pt-BR'),
           'Total do dia',
@@ -101,11 +110,9 @@ export function TimeTracker() {
           formatTime(totalDayTime)
         ]);
 
-        // Adiciona uma linha em branco entre os dias
         rows.push(['', '', '', '']);
       });
     } else {
-      // Exporta apenas o dia atual
       intervals.forEach(interval => {
         rows.push([
           new Date(interval.start).toLocaleDateString('pt-BR'),
@@ -115,7 +122,6 @@ export function TimeTracker() {
         ]);
       });
 
-      // Adiciona o total do dia atual
       rows.push([
         new Date().toLocaleDateString('pt-BR'),
         'Total do dia',
@@ -124,18 +130,15 @@ export function TimeTracker() {
       ]);
     }
 
-    // Remove a última linha em branco se existir
     if (rows[rows.length - 1].every(cell => cell === '')) {
       rows.pop();
     }
 
-    // Combina tudo em um CSV
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.join(','))
     ].join('\n');
 
-    // Cria e dispara o download
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -152,7 +155,6 @@ export function TimeTracker() {
     URL.revokeObjectURL(url);
   }, [intervals, currentTime, allIntervals]);
 
-  // Adiciona os atalhos de teclado
   useKeyboardShortcuts({
     onStartStop: isTracking ? handleStopTracking : handleStartTracking,
     onReset: handleReset,
@@ -184,26 +186,64 @@ export function TimeTracker() {
           </button>
         </div>
 
-        <div className="flex justify-end gap-2 mb-6">
-          <button
-            onClick={() => handleExportData(true)}
-            className="text-sm px-3 py-1.5 rounded font-normal text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-1"
-          >
-            Exportar histórico
-          </button>
-          <button
-            onClick={() => handleExportData(false)}
-            className="text-sm px-3 py-1.5 rounded font-normal text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-1"
-          >
-            Exportar dia atual
-          </button>
-          <button
-            onClick={handleReset}
-            disabled={isTransitioning}
-            className="text-sm px-3 py-1.5 rounded font-normal text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-1 disabled:opacity-50"
-          >
-            Resetar dados
-          </button>
+        <div className="flex justify-end mb-6">
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="w-full sm:w-auto px-4 py-2 rounded-lg font-medium text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+              </svg>
+              Ações
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <div className={`absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 dark:divide-gray-700 transition-all duration-200 z-10 ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+              <div className="py-1">
+                <button
+                  onClick={() => {
+                    handleExportData(true);
+                    setIsMenuOpen(false);
+                  }}
+                  className="group flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-gray-400 group-hover:text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                  Exportar histórico
+                </button>
+                <button
+                  onClick={() => {
+                    handleExportData(false);
+                    setIsMenuOpen(false);
+                  }}
+                  className="group flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-gray-400 group-hover:text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
+                  </svg>
+                  Exportar dia atual
+                </button>
+              </div>
+              <div className="py-1">
+                <button
+                  onClick={() => {
+                    handleReset();
+                    setIsMenuOpen(false);
+                  }}
+                  disabled={isTransitioning}
+                  className="group flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-red-400 group-hover:text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  Resetar dados
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <TimeGoal totalMinutesTracked={currentTime} />
