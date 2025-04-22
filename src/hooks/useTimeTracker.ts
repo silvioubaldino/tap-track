@@ -9,7 +9,6 @@ interface TimeInterval {
 interface TimeTrackerState {
   intervals: TimeInterval[];
   isTracking: boolean;
-  goal?: number; // em minutos
 }
 
 const STORAGE_KEY = 'time-tracker-state';
@@ -19,8 +18,7 @@ export function useTimeTracker() {
     const savedState = localStorage.getItem(STORAGE_KEY);
     return savedState ? JSON.parse(savedState) : {
       intervals: [],
-      isTracking: false,
-      goal: undefined
+      isTracking: false
     };
   });
 
@@ -53,13 +51,6 @@ export function useTimeTracker() {
     }
   };
 
-  const setGoal = (minutes: number | undefined) => {
-    setState(prev => ({
-      ...prev,
-      goal: minutes
-    }));
-  };
-
   const calculateTotalTime = (): number => {
     return state.intervals.reduce((total, interval) => {
       const end = interval.end || (state.isTracking ? Date.now() : interval.start);
@@ -67,17 +58,10 @@ export function useTimeTracker() {
     }, 0);
   };
 
-  const getRemainingTime = (): number | undefined => {
-    if (!state.goal) return undefined;
-    const totalMinutes = calculateTotalTime() / (1000 * 60);
-    return Math.max(0, state.goal - totalMinutes);
-  };
-
   const resetAll = () => {
     setState({
       intervals: [],
-      isTracking: false,
-      goal: undefined
+      isTracking: false
     });
   };
 
@@ -105,12 +89,9 @@ export function useTimeTracker() {
   return {
     intervals: state.intervals,
     isTracking: state.isTracking,
-    goal: state.goal,
     startTracking,
     stopTracking,
-    setGoal,
     calculateTotalTime,
-    getRemainingTime,
     resetAll,
     deleteInterval,
     editInterval,
