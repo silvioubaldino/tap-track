@@ -18,12 +18,6 @@ export function useKeyboardShortcuts({ onStartStop, onReset }: KeyboardShortcuts
         event.preventDefault();
         onStartStop();
       }
-      
-      // R para resetar
-      if (event.code === 'KeyR' && (event.ctrlKey || event.metaKey)) {
-        event.preventDefault();
-        onReset();
-      }
     };
 
     window.addEventListener('keydown', handleKeyPress);
