@@ -25,9 +25,11 @@ export function IntervalsList({ intervals, onDelete, onEdit, onAdd, isTracking }
   const handleEdit = (interval: Interval) => {
     setEditingId(interval.id);
     setError(null);
+    const startDate = new Date(interval.start);
+    const endDate = interval.end ? new Date(interval.end) : null;
     setEditForm({
-      start: new Date(interval.start).toISOString().slice(11, 16),
-      end: interval.end ? new Date(interval.end).toISOString().slice(11, 16) : ''
+      start: `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`,
+      end: endDate ? `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}` : ''
     });
   };
 
@@ -54,6 +56,7 @@ export function IntervalsList({ intervals, onDelete, onEdit, onAdd, isTracking }
   const createDateWithTime = (timeString: string): number => {
     const [hours, minutes] = timeString.split(':').map(Number);
     const date = new Date();
+    date.setHours(0, 0, 0, 0);
     date.setHours(hours, minutes, 0, 0);
     return date.getTime();
   };
@@ -67,7 +70,6 @@ export function IntervalsList({ intervals, onDelete, onEdit, onAdd, isTracking }
     const startTime = createDateWithTime(editForm.start);
     const endTime = editForm.end ? createDateWithTime(editForm.end) : undefined;
 
-    // Se estiver editando o intervalo atual em andamento, não permitir que o início seja depois do momento atual
     if (isTracking && id === intervals[intervals.length - 1].id) {
       if (startTime > Date.now()) {
         setError('O horário de início não pode ser posterior ao momento atual');
@@ -111,70 +113,74 @@ export function IntervalsList({ intervals, onDelete, onEdit, onAdd, isTracking }
     setError(null);
   };
 
-  const renderTimeForm = (isNewInterval: boolean = false) => (
-    <div className="space-y-2 animate-fade-in">
-      <div className="flex flex-col sm:flex-row gap-2">
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
-            Início
-          </label>
-          <input
-            type="time"
-            value={editForm.start}
-            onChange={(e) => {
-              setEditForm(prev => ({ ...prev, start: e.target.value }));
+  const renderTimeForm = (isNewInterval: boolean = false) => {
+    const isEditingCurrentInterval = isTracking && editingId === intervals[intervals.length - 1]?.id;
+    
+    return (
+      <div className="space-y-2 animate-fade-in">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Início
+            </label>
+            <input
+              type="time"
+              value={editForm.start}
+              onChange={(e) => {
+                setEditForm(prev => ({ ...prev, start: e.target.value }));
+                setError(null);
+              }}
+              className="w-full px-3 py-2 rounded border dark:bg-gray-600 dark:border-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+              Fim
+            </label>
+            <input
+              type="time"
+              value={editForm.end}
+              onChange={(e) => {
+                setEditForm(prev => ({ ...prev, end: e.target.value }));
+                setError(null);
+              }}
+              className="w-full px-3 py-2 rounded border dark:bg-gray-600 dark:border-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isEditingCurrentInterval && !isNewInterval}
+            />
+            {isEditingCurrentInterval && !isNewInterval && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Em andamento
+              </p>
+            )}
+          </div>
+        </div>
+
+        {error && (
+          <div className="text-sm text-red-500 dark:text-red-400 mt-2">
+            {error}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => {
+              isNewInterval ? setIsAdding(false) : setEditingId(null);
               setError(null);
             }}
-            className="w-full px-3 py-2 rounded border dark:bg-gray-600 dark:border-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
-            Fim
-          </label>
-          <input
-            type="time"
-            value={editForm.end}
-            onChange={(e) => {
-              setEditForm(prev => ({ ...prev, end: e.target.value }));
-              setError(null);
-            }}
-            className="w-full px-3 py-2 rounded border dark:bg-gray-600 dark:border-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isTracking && !isNewInterval}
-          />
-          {isTracking && !isNewInterval && (
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Em andamento
-            </p>
-          )}
+            className="px-4 py-2 text-sm rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => isNewInterval ? handleAdd() : handleSave(editingId!)}
+            className="px-4 py-2 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+          >
+            {isNewInterval ? 'Adicionar' : 'Salvar'}
+          </button>
         </div>
       </div>
-
-      {error && (
-        <div className="text-sm text-red-500 dark:text-red-400 mt-2">
-          {error}
-        </div>
-      )}
-
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={() => {
-            isNewInterval ? setIsAdding(false) : setEditingId(null);
-            setError(null);
-          }}
-          className="px-4 py-2 text-sm rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={() => isNewInterval ? handleAdd() : handleSave(editingId!)}
-          className="px-4 py-2 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-        >
-          {isNewInterval ? 'Adicionar' : 'Salvar'}
-        </button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-4">
