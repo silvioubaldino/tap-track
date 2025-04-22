@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { ThemeMode } from "../types";
+import { StorageConsent } from './StorageConsent';
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,6 +9,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [storageAccepted, setStorageAccepted] = useState(false);
 
   // Verifica se o sistema está em modo escuro
   const checkSystemTheme = (): boolean => {
@@ -89,6 +91,7 @@ const Layout = ({ children }: LayoutProps) => {
           <p className="text-xs opacity-75">Os dados são armazenados localmente no seu navegador e podem ser perdidos se você limpar os dados de navegação.</p>
         </footer>
       </div>
+      <StorageConsent onAccept={() => setStorageAccepted(true)} />
     </div>
   );
 };
