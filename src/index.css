@@ -72,6 +72,16 @@
   .mobile-touch {
     @apply sm:hover:scale-105 active:scale-95 transition-transform;
   }
+  
+  /* Fonte Eczar para a logo */
+  .font-eczar {
+    font-family: 'Eczar', serif;
+  }
+  
+  /* Estilo da logo */
+  .logo-text {
+    @apply font-eczar font-bold tracking-tight;
+  }
 }
 
 /* Animações personalizadas */

@@ -59,10 +59,22 @@ const Layout = ({ children }: LayoutProps) => {
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8">
           <div className="flex justify-between items-center">
-            <h1 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}>
-              {t('appTitle')}
-            </h1>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
+              <div className="flex items-center mr-3 pr-3 border-r border-gray-300 dark:border-gray-700">
+                <img 
+                  src="/favicon-32x32.png" 
+                  alt="⏱️" 
+                  className="h-8 w-auto mr-2"
+                />
+                <span className="logo-text text-2xl text-blue-600 dark:text-blue-400 transition-colors duration-300">
+                  Tap Track
+                </span>
+              </div>
+              <h1 className={`text-xl font-medium ${isDarkMode ? "text-white" : "text-gray-800"}`}>
+                {t('appTitle')}
+              </h1>
+            </div>
+            <div className="flex items-center gap-3">
               <LanguageSelector />
               <button 
                 onClick={toggleTheme}
@@ -91,7 +103,19 @@ const Layout = ({ children }: LayoutProps) => {
         </main>
         
         <footer className={`text-center text-sm mt-8 py-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
-          <p className="mb-2">© {new Date().getFullYear()} {t('appTitle')}</p>
+          <div className="flex items-center justify-center mb-2">
+            <div className="flex items-center mr-2">
+              <img 
+                src="/favicon-16x16.png" 
+                alt="⏱️" 
+                className="h-4 w-auto mr-1"
+              />
+              <span className="logo-text text-sm text-blue-600 dark:text-blue-400 transition-colors duration-300">
+                Tap Track
+              </span>
+            </div>
+            <p>© {new Date().getFullYear()} {t('appTitle')}</p>
+          </div>
           <p className="text-xs opacity-75">{t('footer.localStorageWarning')}</p>
         </footer>
       </div>

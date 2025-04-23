@@ -38,7 +38,7 @@ const LanguageSelector = () => {
     <div className="relative">
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="p-2 rounded-md flex items-center hover:bg-opacity-80 transition-all"
+        className="p-2 rounded-md flex items-center bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-opacity-90 transition-all"
         aria-label="Selecionar idioma"
       >
         <span className="mr-1">{current.flag}</span>
@@ -51,7 +51,7 @@ const LanguageSelector = () => {
             <button
               key={lang.code}
               onClick={() => changeLanguage(lang.code)}
-              className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+              className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
             >
               <span className="mr-2">{lang.flag}</span>
               <span>{lang.label}</span>
