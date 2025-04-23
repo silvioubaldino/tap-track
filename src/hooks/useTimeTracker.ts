@@ -14,11 +14,21 @@ interface DayIntervals {
 const STORAGE_KEY = 'time-intervals';
 
 const getDateKey = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const key = `${year}-${month}-${day}`;
+  console.log('Date Key for:', date);
+  console.log('Formatted as:', key);
+  return key;
 };
 
 const getTodayKey = (): string => {
-  return getDateKey(new Date());
+  const key = getDateKey(new Date());
+  console.log('Today Key (Local):', key);
+  console.log('Current Date Object:', new Date());
+  console.log('Current Date ISO:', new Date().toISOString());
+  return key;
 };
 
 export function useTimeTracker() {

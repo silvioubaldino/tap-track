@@ -58,7 +58,6 @@ export function IntervalsList({ intervals, onDelete, onEdit, onAdd, isTracking }
   const createDateWithTime = (timeString: string): number => {
     const [hours, minutes] = timeString.split(':').map(Number);
     const date = new Date();
-    date.setHours(0, 0, 0, 0);
     date.setHours(hours, minutes, 0, 0);
     return date.getTime();
   };
