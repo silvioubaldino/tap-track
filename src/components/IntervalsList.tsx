@@ -24,6 +24,9 @@ export function IntervalsList({ intervals, onDelete, onEdit, onAdd, isTracking }
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Ordena os intervalos pela menor hora de início (start)
+  const sortedIntervals = [...intervals].sort((a, b) => a.start - b.start);
+
   const handleEdit = (interval: Interval) => {
     setEditingId(interval.id);
     setError(null);
@@ -71,7 +74,12 @@ export function IntervalsList({ intervals, onDelete, onEdit, onAdd, isTracking }
     const startTime = createDateWithTime(editForm.start);
     const endTime = editForm.end ? createDateWithTime(editForm.end) : undefined;
 
-    if (isTracking && id === intervals[intervals.length - 1].id) {
+    // Encontrar o intervalo atual a partir dos intervalos ordenados
+    const currentTrackingInterval = sortedIntervals.find(
+      interval => !interval.end && isTracking
+    );
+
+    if (isTracking && currentTrackingInterval && id === currentTrackingInterval.id) {
       if (startTime > Date.now()) {
         setError(t('timeTracker.startNotInFuture'));
         return;
@@ -115,7 +123,14 @@ export function IntervalsList({ intervals, onDelete, onEdit, onAdd, isTracking }
   };
 
   const renderTimeForm = (isNewInterval: boolean = false) => {
-    const isEditingCurrentInterval = isTracking && editingId === intervals[intervals.length - 1]?.id;
+    // Encontrar o intervalo atual em andamento a partir dos intervalos ordenados
+    const currentTrackingInterval = sortedIntervals.find(
+      interval => !interval.end && isTracking
+    );
+    
+    const isEditingCurrentInterval = isTracking && 
+      currentTrackingInterval && 
+      editingId === currentTrackingInterval.id;
     
     return (
       <div className="space-y-2 animate-fade-in">
@@ -185,17 +200,17 @@ export function IntervalsList({ intervals, onDelete, onEdit, onAdd, isTracking }
 
   return (
     <div className="space-y-4">
-      {intervals.length === 0 && !isAdding ? (
+      {sortedIntervals.length === 0 && !isAdding ? (
         <div className="text-center text-gray-500 dark:text-gray-400 py-8 animate-fade-in">
           {t('timeTracker.noIntervals')}
         </div>
       ) : (
-        intervals.map((interval, index) => {
+        sortedIntervals.map((interval, index) => {
           const duration = (interval.end || Date.now()) - interval.start;
           const isEditing = editingId === interval.id;
           const isDeleting = deletingId === interval.id;
-          const isLast = index === intervals.length - 1;
-          const isCurrentlyTracking = isLast && isTracking;
+          const isLast = index === sortedIntervals.length - 1;
+          const isCurrentlyTracking = isLast && isTracking && !interval.end;
 
           return (
             <div
