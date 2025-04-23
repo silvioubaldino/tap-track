@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTimeGoal } from '../hooks/useTimeGoal';
 import { formatDateTime } from '../utils/dateTime';
+import { useTranslation } from 'react-i18next';
 
 interface TimeGoalProps {
   totalMinutesTracked: number; // tempo em milissegundos
 }
 
 export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
+  const { t } = useTranslation();
   const { goal, setNewGoal, editGoal, clearGoal } = useTimeGoal();
   const [inputHours, setInputHours] = useState('');
   const [inputMinutes, setInputMinutes] = useState('');
@@ -69,7 +71,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
     const goalInMs = goal.totalMinutes * 60 * 1000;
     const remainingMs = goalInMs - totalMinutesTracked;
     
-    if (remainingMs <= 0) return 'Meta atingida! 🎉';
+    if (remainingMs <= 0) return t('timeTracker.goalReached');
     
     // Calcula horas, minutos e segundos
     const hours = Math.floor(remainingMs / (1000 * 60 * 60));
@@ -87,7 +89,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
       secondsText
     ].filter(Boolean);
     
-    return `${timeComponents.join(' ')} restantes`;
+    return `${timeComponents.join(' ')} ${t('timeTracker.remaining').toLowerCase()}`;
   };
 
   const getEstimatedCompletionTime = () => {
@@ -114,7 +116,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
       <div className="flex gap-4">
         <div className="flex-1">
           <label htmlFor="goalHours" className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-300">
-            Horas
+            {t('timeTracker.hours')}
           </label>
           <input
             type="number"
@@ -128,7 +130,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
         </div>
         <div className="flex-1">
           <label htmlFor="goalMinutes" className="block mb-2 text-sm font-medium text-gray-600 dark:text-gray-300">
-            Minutos
+            {t('timeTracker.minutes')}
           </label>
           <input
             type="number"
@@ -147,7 +149,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
           type="submit"
           className="flex-1 py-3 px-4 text-lg font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          {isEditing ? 'Salvar' : 'Definir Meta'}
+          {isEditing ? t('timeTracker.save') : t('timeTracker.setGoal')}
         </button>
         {isEditing && (
           <button
@@ -155,7 +157,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
             onClick={handleCancelEdit}
             className="px-4 py-3 text-lg font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors duration-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
-            Cancelar
+            {t('timeTracker.cancel')}
           </button>
         )}
       </div>
@@ -166,7 +168,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
         <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-100">
-          {isEditing ? 'Editar Meta' : 'Meta Diária'}
+          {isEditing ? t('timeTracker.editGoal') : t('timeTracker.dailyGoal')}
         </h2>
         {renderForm()}
       </div>
@@ -181,20 +183,20 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
     <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Meta Diária</h2>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{t('timeTracker.dailyGoal')}</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={handleStartEdit}
               className="text-sm text-gray-500 hover:text-blue-500 transition-colors duration-200"
             >
-              Editar
+              {t('timeTracker.edit')}
             </button>
             <span className="text-gray-300 dark:text-gray-600">|</span>
             <button
               onClick={clearGoal}
               className="text-sm text-gray-500 hover:text-red-500 transition-colors duration-200"
             >
-              Remover
+              {t('timeTracker.remove')}
             </button>
           </div>
         </div>
@@ -205,7 +207,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
               {formatGoalTime(goal.hours, goal.minutes)}
             </span>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              horas
+              {t('timeTracker.hours')}
             </span>
           </div>
           <div className="space-y-1">
@@ -214,7 +216,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
             </p>
             {estimatedCompletionTime && (
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Previsão de conclusão às {estimatedCompletionTime}
+                {t('timeTracker.estimatedCompletion')} {estimatedCompletionTime}
               </p>
             )}
           </div>
@@ -223,7 +225,7 @@ export function TimeGoal({ totalMinutesTracked }: TimeGoalProps) {
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              Progresso
+              {t('timeTracker.progress')}
             </span>
             <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
               {Math.round(progress)}%

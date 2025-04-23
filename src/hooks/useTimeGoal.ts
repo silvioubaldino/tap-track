@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { isSameDay } from '../utils/dateTime';
+import { toLocalISOString } from '../utils/dateTime';
 
 interface TimeGoal {
   hours: number;
@@ -10,14 +12,6 @@ interface TimeGoal {
 }
 
 const STORAGE_KEY = 'timeGoal';
-
-const isSameDay = (date1: Date, date2: Date) => {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-};
 
 export function useTimeGoal() {
   const [goal, setGoal] = useState<TimeGoal | null>(() => {
@@ -47,12 +41,13 @@ export function useTimeGoal() {
 
   const setNewGoal = (hours: number, minutes: number) => {
     const totalMinutes = (hours * 60) + minutes;
+    const now = new Date();
     setGoal({
       hours,
       minutes,
       totalMinutes,
       isActive: true,
-      createdAt: new Date().toISOString(),
+      createdAt: toLocalISOString(now),
     });
   };
 
@@ -70,10 +65,11 @@ export function useTimeGoal() {
 
   const completeGoal = () => {
     if (goal) {
+      const now = new Date();
       setGoal({
         ...goal,
         isActive: false,
-        completedAt: new Date().toISOString(),
+        completedAt: toLocalISOString(now),
       });
     }
   };

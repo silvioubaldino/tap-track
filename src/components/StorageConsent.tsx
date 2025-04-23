@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface StorageConsentProps {
   onAccept: () => void;
@@ -7,6 +8,7 @@ interface StorageConsentProps {
 const STORAGE_CONSENT_KEY = 'storage-consent-accepted';
 
 export function StorageConsent({ onAccept }: StorageConsentProps) {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -29,15 +31,14 @@ export function StorageConsent({ onAccept }: StorageConsentProps) {
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-sm text-gray-600 dark:text-gray-300">
           <p>
-            Esta aplicação utiliza armazenamento local (localStorage) para funcionar corretamente.
-            Nenhum dado pessoal é coletado ou compartilhado.{' '}
+            {t('consent.message')}{' '}
             <a
               href="/docs/LEGAL.md"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 hover:text-blue-600 underline"
             >
-              Saiba mais
+              {t('consent.learnMore')}
             </a>
           </p>
         </div>
@@ -46,7 +47,7 @@ export function StorageConsent({ onAccept }: StorageConsentProps) {
             onClick={handleAccept}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
-            Aceitar
+            {t('consent.accept')}
           </button>
         </div>
       </div>

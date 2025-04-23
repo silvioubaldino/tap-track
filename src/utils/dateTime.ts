@@ -7,7 +7,10 @@
  */
 export const getCurrentDate = (): string => {
   const now = new Date();
-  return now.toISOString().split('T')[0];
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 /**
@@ -53,4 +56,13 @@ export const isSameDay = (date1: Date, date2: Date): boolean => {
     date1.getMonth() === date2.getMonth() &&
     date1.getDate() === date2.getDate()
   );
+};
+
+/**
+ * Converte uma data para string ISO com o timezone local
+ */
+export const toLocalISOString = (date: Date): string => {
+  const tzOffset = date.getTimezoneOffset() * 60000; // offset em milissegundos
+  const localDate = new Date(date.getTime() - tzOffset);
+  return localDate.toISOString();
 }; 

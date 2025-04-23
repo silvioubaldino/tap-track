@@ -7,6 +7,9 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        'eczar': ['Eczar', 'serif'],
+      },
       colors: {
         primary: {
           light: '#3B82F6', // blue-500
