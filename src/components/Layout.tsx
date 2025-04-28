@@ -61,9 +61,9 @@ const Layout = ({ children }: LayoutProps) => {
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <div className="flex items-center mr-3 pr-3 border-r border-gray-300 dark:border-gray-700">
-                <img 
-                  src="/favicon-32x32.png" 
-                  alt="⏱️" 
+                <img
+                  src="/favicon-32x32.png"
+                  alt="⏱️"
                   className="h-8 w-auto mr-2"
                 />
                 <span className="logo-text text-2xl text-blue-600 dark:text-blue-400 transition-colors duration-300">
@@ -105,9 +105,9 @@ const Layout = ({ children }: LayoutProps) => {
         <footer className={`text-center text-sm mt-8 py-4 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
           <div className="flex items-center justify-center mb-2">
             <div className="flex items-center mr-2">
-              <img 
-                src="/favicon-16x16.png" 
-                alt="⏱️" 
+              <img
+                src="/favicon-16x16.png"
+                alt="⏱️"
                 className="h-4 w-auto mr-1"
               />
               <span className="logo-text text-sm text-blue-600 dark:text-blue-400 transition-colors duration-300">
