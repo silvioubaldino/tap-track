@@ -41,6 +41,14 @@ export function formatTime(milliseconds: number): string {
   return `${pad(hours)}:${pad(remainingMinutes)}:${pad(remainingSeconds)}`;
 }
 
+export function formatTitleTime(milliseconds: number): string {
+  const totalMinutes = Math.floor(milliseconds / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  return `${hours}h${minutes.toString().padStart(2, '0')}`;
+}
+
 export function formatDateTime(timestamp: number): string {
   const date = new Date(timestamp);
   const hours = date.getHours().toString().padStart(2, '0');

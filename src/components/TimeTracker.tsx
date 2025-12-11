@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTimeTracker } from '../hooks/useTimeTracker';
-import { formatTime } from '../utils/timeUtils';
+import { formatTime, formatTitleTime } from '../utils/timeUtils';
 import { IntervalsList } from './IntervalsList';
 import { TimeGoal } from './TimeGoal';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -26,6 +26,7 @@ export function TimeTracker() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
+  const baseTitleRef = useRef(document.title);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -58,6 +59,24 @@ export function TimeTracker() {
       }
     };
   }, [isTracking, intervals, calculateTotalTime]);
+
+  useEffect(() => {
+    const baseTitle = `TapTrack - ${t('appTitle')}`;
+    baseTitleRef.current = baseTitle;
+
+    if (currentTime > 0) {
+      document.title = `${formatTitleTime(currentTime)}# ${baseTitle}`;
+      return;
+    }
+
+    document.title = baseTitle;
+  }, [currentTime, t]);
+
+  useEffect(() => {
+    return () => {
+      document.title = baseTitleRef.current;
+    };
+  }, []);
 
   const handleStartTracking = useCallback(() => {
     setIsTransitioning(true);
